@@ -1,11 +1,13 @@
 package com.example.MarketDemo.dto;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDate;
 import java.util.List;
 
 @Getter
 @AllArgsConstructor
+@Builder
 public class VentaDTO {
 
     private final Long id;

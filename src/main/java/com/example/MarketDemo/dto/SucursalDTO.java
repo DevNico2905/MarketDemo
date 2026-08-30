@@ -1,8 +1,10 @@
 package com.example.MarketDemo.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class SucursalDTO {
 
     private final Long id;
