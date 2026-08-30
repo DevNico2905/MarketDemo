@@ -2,8 +2,12 @@ package com.example.MarketDemo.mapper;
 
 import com.example.MarketDemo.dto.ProductoDTO;
 import com.example.MarketDemo.dto.SucursalDTO;
+import com.example.MarketDemo.dto.VentaDTO;
 import com.example.MarketDemo.model.Producto;
 import com.example.MarketDemo.model.Sucursal;
+import com.example.MarketDemo.model.Venta;
+
+import java.util.List;
 
 public class Mapper {
 
@@ -21,6 +25,20 @@ public class Mapper {
     }
 
     //Mapeo de Venta a VentaDTO
+    public static VentaDTO toDTO(Venta v){
+        if (v == null) return null;
+
+        return VentaDTO.builder()
+                .id(v.getId())
+                .fecha(v.getFecha())
+                .estado(v.getEstado())
+                .total(v.getTotal())
+                .idSucursal(v.getSucursal().getId())
+                .detalle(detalle)
+                .build()
+
+    }
+
 
     //Mapeo de Sucursal a SucursalDTO
     public static SucursalDTO toDTO(Sucursal s) {
