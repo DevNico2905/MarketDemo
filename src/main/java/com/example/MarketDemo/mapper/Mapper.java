@@ -1,5 +1,6 @@
 package com.example.MarketDemo.mapper;
 
+import com.example.MarketDemo.dto.DetalleVentaDTO;
 import com.example.MarketDemo.dto.ProductoDTO;
 import com.example.MarketDemo.dto.SucursalDTO;
 import com.example.MarketDemo.dto.VentaDTO;
@@ -8,6 +9,7 @@ import com.example.MarketDemo.model.Sucursal;
 import com.example.MarketDemo.model.Venta;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Mapper {
 
@@ -28,17 +30,28 @@ public class Mapper {
     public static VentaDTO toDTO(Venta v){
         if (v == null) return null;
 
+        var detalle = v.getDetalle().stream().map(detalleVenta ->
+                DetalleVentaDTO.builder()
+                        .id(detalleVenta.getId())
+                        .productName(detalleVenta.getProducto().getNombre())
+                        .cantidad(detalleVenta.getCantProd())
+                        .precio(detalleVenta.getPrecio())
+                        .subtotal(detalleVenta.getPrecio() * detalleVenta.getCantProd())
+                        .build()).collect(Collectors.toList());
+
+        var total = detalle.stream()
+                .map(DetalleVentaDTO::getSubtotal)
+                .reduce(0.0, Double::sum);
+
         return VentaDTO.builder()
                 .id(v.getId())
                 .fecha(v.getFecha())
                 .estado(v.getEstado())
-                .total(v.getTotal())
+                .total(total)
                 .idSucursal(v.getSucursal().getId())
                 .detalle(detalle)
-                .build()
-
+                .build();
     }
-
 
     //Mapeo de Sucursal a SucursalDTO
     public static SucursalDTO toDTO(Sucursal s) {
