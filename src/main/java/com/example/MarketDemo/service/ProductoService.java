@@ -1,6 +1,7 @@
 package com.example.MarketDemo.service;
 import com.example.MarketDemo.dto.ProductoDTO;
 import com.example.MarketDemo.mapper.Mapper;
+import com.example.MarketDemo.model.Producto;
 import com.example.MarketDemo.repository.ProductoRepository;
 import com.example.MarketDemo.service.interfaces.IProductoService;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,15 @@ public class ProductoService implements IProductoService {
 
     @Override
     public ProductoDTO createProducto(ProductoDTO newProduct) {
-        return null;
+        
+        var product = Producto.builder()
+                .nombre(newProduct.getNombre())
+                .categoria(newProduct.getCategoria())
+                .precio(newProduct.getPrecio())
+                .cantidad(newProduct.getCantidad())
+                .build();
+        
+        return Mapper.toDTO(productoRepository.save(product));
     }
 
     @Override
@@ -33,6 +42,6 @@ public class ProductoService implements IProductoService {
 
     @Override
     public void deleteProducto(Long id) {
-
+        productoRepository.deleteById(id);
     }
 }

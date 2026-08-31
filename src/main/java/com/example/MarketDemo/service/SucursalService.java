@@ -1,5 +1,7 @@
 package com.example.MarketDemo.service;
 import com.example.MarketDemo.dto.SucursalDTO;
+import com.example.MarketDemo.mapper.Mapper;
+import com.example.MarketDemo.model.Sucursal;
 import com.example.MarketDemo.repository.SucursalRepository;
 import com.example.MarketDemo.service.interfaces.ISucursalService;
 import org.springframework.stereotype.Service;
@@ -17,12 +19,18 @@ public class SucursalService implements ISucursalService {
 
     @Override
     public List<SucursalDTO> allSucursales() {
-        return sucursalRepository.findAll();
+        return sucursalRepository.findAll().stream().map(Mapper::toDTO).toList();
     }
 
     @Override
     public SucursalDTO createSucursal(SucursalDTO newDto) {
-        return null;
+
+        Sucursal sucursal = Sucursal.builder()
+                .nombre(newDto.getNombre())
+                .direccion(newDto.getDireccion())
+                .build();
+
+        return Mapper.toDTO(sucursalRepository.save(sucursal));
     }
 
     @Override
