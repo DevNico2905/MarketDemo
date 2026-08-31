@@ -1,5 +1,6 @@
 package com.example.MarketDemo.service;
 import com.example.MarketDemo.dto.SucursalDTO;
+import com.example.MarketDemo.exception.NotFoundException;
 import com.example.MarketDemo.mapper.Mapper;
 import com.example.MarketDemo.model.Sucursal;
 import com.example.MarketDemo.repository.SucursalRepository;
@@ -35,11 +36,22 @@ public class SucursalService implements ISucursalService {
 
     @Override
     public SucursalDTO updateSucursal(Long id, SucursalDTO dto) {
-        return null;
+
+        Sucursal sucursal = sucursalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Sucursal no encontrada"));
+
+        sucursal.setNombre(dto.getNombre());
+        sucursal.setDireccion(dto.getDireccion());
+
+        return Mapper.toDTO(sucursalRepository.save(sucursal));
     }
 
     @Override
     public void deleteSucursal(Long id) {
+        if (!sucursalRepository.existsById(id)){
+            throw new NotFoundException("Sucursal no encontrada");
+        }
 
+        sucursalRepository.deleteById(id);
     }
 }

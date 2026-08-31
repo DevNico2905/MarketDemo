@@ -5,7 +5,6 @@ import com.example.MarketDemo.mapper.Mapper;
 import com.example.MarketDemo.model.Producto;
 import com.example.MarketDemo.repository.ProductoRepository;
 import com.example.MarketDemo.service.interfaces.IProductoService;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
