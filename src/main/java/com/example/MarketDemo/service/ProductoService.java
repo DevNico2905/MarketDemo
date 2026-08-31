@@ -1,9 +1,11 @@
 package com.example.MarketDemo.service;
 import com.example.MarketDemo.dto.ProductoDTO;
+import com.example.MarketDemo.exception.NotFoundException;
 import com.example.MarketDemo.mapper.Mapper;
 import com.example.MarketDemo.model.Producto;
 import com.example.MarketDemo.repository.ProductoRepository;
 import com.example.MarketDemo.service.interfaces.IProductoService;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,11 +39,24 @@ public class ProductoService implements IProductoService {
 
     @Override
     public ProductoDTO updateProducto(Long id, ProductoDTO dto) {
-        return null;
+
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
+
+        producto.setNombre(dto.getNombre());
+        producto.setCategoria(dto.getCategoria());
+        producto.setPrecio(dto.getPrecio());
+        producto.setCantidad(dto.getCantidad());
+
+        return Mapper.toDTO(productoRepository.save(producto));
     }
 
     @Override
     public void deleteProducto(Long id) {
+        if (!productoRepository.existsById(id)){
+            throw new NotFoundException("Producto no encontrado");
+        }
+
         productoRepository.deleteById(id);
     }
 }
