@@ -102,9 +102,23 @@ public class VentaService implements IVentaService {
         Venta venta = ventaRepo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Venta no encontrada"));
 
-        venta.setFecha(dto.getFecha());
-        venta.setEstado(dto.getEstado());
-        venta.setTotal(dto.getTotal());
+        if (dto.getFecha()!=null){
+            venta.setFecha(dto.getFecha());
+        }
+
+        if (dto.getEstado()!=null){
+            venta.setEstado(dto.getEstado());
+        }
+
+        //El total no se actualiza a mano: sale del detalle, y este metodo no lo modifica.
+        //Si alguna vez el update toca las lineas, hay que recalcularlo como en createVenta.
+
+        if (dto.getIdSucursal()!=null){
+            Sucursal sucursal = sucuRepo.findById(dto.getIdSucursal())
+                    .orElseThrow(() -> new NotFoundException("Sucursal no encontrada"));
+
+            venta.setSucursal(sucursal);
+        }
 
         return Mapper.toDTO(ventaRepo.save(venta));
     }
