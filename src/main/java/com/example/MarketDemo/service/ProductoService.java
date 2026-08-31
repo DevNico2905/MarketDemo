@@ -20,7 +20,12 @@ public class ProductoService implements IProductoService {
 
     @Override
     public ProductoDTO createProducto(ProductoDTO newProduct) {
-        
+
+        //El nombre identifica al producto en el detalle de una venta, asi que no puede repetirse
+        if (productoRepository.existsByNombre(newProduct.getNombre())) {
+            throw new RuntimeException("Ya existe un producto con el nombre: " + newProduct.getNombre());
+        }
+
         var product = Producto.builder()
                 .nombre(newProduct.getNombre())
                 .categoria(newProduct.getCategoria())
@@ -41,6 +46,13 @@ public class ProductoService implements IProductoService {
 
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
+
+        //Renombrar tampoco puede pisar el nombre de otro producto
+        productoRepository.findByNombre(dto.getNombre())
+                .filter(otro -> !otro.getId().equals(id))
+                .ifPresent(otro -> {
+                    throw new RuntimeException("Ya existe un producto con el nombre: " + dto.getNombre());
+                });
 
         producto.setNombre(dto.getNombre());
         producto.setCategoria(dto.getCategoria());
