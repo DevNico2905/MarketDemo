@@ -22,6 +22,16 @@ excepción y docs. Mantener esa convención al escribir código nuevo.
 ./mvnw -q compile                 # chequeo rápido de compilación
 ```
 
+El único test es `MarketDemoApplicationTests.contextLoads` (`@SpringBootTest`), así que `./mvnw test`
+levanta el contexto completo de Spring y falla mientras el `main` no compile: para iterar sobre código
+a medio escribir conviene `./mvnw -q compile`.
+
+**Spring Boot 4 renombró los starters**; al agregar dependencias usar los nombres que ya están en el
+`pom.xml`: `spring-boot-starter-webmvc` (no `-web`) y, para tests, `spring-boot-starter-webmvc-test` /
+`spring-boot-starter-data-jpa-test` (no `spring-boot-starter-test`). El `maven-compiler-plugin` declara
+Lombok en `annotationProcessorPaths` a mano en las dos ejecuciones (`default-compile` y
+`default-testCompile`); si se agrega otro procesador de anotaciones hay que sumarlo en ambas.
+
 ## Arquitectura
 
 Capas en `com.example.MarketDemo`: `model` (entidades JPA) → `repository` (Spring Data) →
@@ -45,19 +55,35 @@ Decisiones que atraviesan varios archivos:
   `cantidad` y expone `productName` en lugar del `Producto` completo, más un `subtotal` calculado.
 - **Errores de negocio:** `NotFoundException` (`RuntimeException`) lanzada desde los servicios
   con `orElseThrow` / `existsById`. Todavía **no hay `@RestControllerAdvice`**, así que hoy
-  cualquier `NotFoundException` termina en un 500.
+  cualquier `NotFoundException` termina en un 500. Las validaciones de entrada de
+  `VentaService.createVenta` tiran `RuntimeException` pelada, no una excepción propia.
 - Cada servicio implementa su interfaz en `service/interfaces/I*Service.java` e inyecta los
   repositorios por constructor (sin `@Autowired`).
+- Las entidades nombran la tabla con `@Entity(name = "producto")` en minúscula, sin `@Table`. Ojo:
+  eso fija el nombre de la *entidad*, no el de la tabla; la estrategia de nombres de Hibernate
+  igual crea `detalle_venta` con columnas `cant_prod`, `venta_id`, `producto_id` (importa al
+  escribir SQL nativo).
+- **El detalle de una venta identifica al producto por nombre, no por id**, porque `DetalleVentaDTO`
+  expone `productName`. De ahí `ProductoRepository.findByNombre`. Si el DTO llegara a exponer un id
+  de producto, esa query sobra.
+- **`Mapper.toDTO(Venta)` recorre la colección lazy `detalle`.** Dentro de un request HTTP funciona
+  por el *open-in-view* que Spring Boot trae activado por defecto, pero fuera de una transacción
+  (un test, un `@Scheduled`) tira `LazyInitializationException`. `createVenta` no sufre eso porque
+  es `@Transactional`; `allVentas` sí depende del open-in-view.
 
 ## Estado actual
 
-- `VentaService.createVenta` está **a medio escribir y no compila** (`.sucursal()` y `.detalle()`
-  llamados sin argumentos en el builder). Es el punto donde quedó el trabajo.
-- Falta la capa `controller` completa; los endpoints planificados están en `README.md`.
-- `DetalleVenta` no tiene `@Builder` (las demás entidades sí) ni repositorio propio: se persiste
-  vía la relación con `Venta`, cuyo `@OneToMany` hoy no tiene `cascade`.
+- La capa `service` está completa (`createVenta` incluido). Falta la capa `controller`; los endpoints
+  planificados están en `README.md`.
+- `DetalleVenta` **no tiene repositorio propio**: se persiste vía la relación con `Venta`, que lleva
+  `@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)`. Por eso
+  `createVenta` engancha los dos lados (`detalle.venta = venta` y `venta.getDetalle().add(detalle)`)
+  antes de un único `ventaRepo.save(venta)`.
 - `README.md` y `BITACORA.md` describen MySQL, pero `application.properties` apunta a **H2 en
-  memoria** (`jdbc:h2:mem:superdb;MODE=MySQL`). El driver de MySQL sigue en el `pom.xml`.
+  memoria** (`jdbc:h2:mem:superdb;MODE=MySQL`, `ddl-auto=update`). El driver de MySQL sigue en el
+  `pom.xml`. La consola web de H2 no está habilitada.
+- `SucursalDTO` escribe su constructor a mano en vez de usar `@AllArgsConstructor` como los otros DTOs.
+- El JDK instalado es 25, pero el `pom.xml` compila con `java.version=17`: no usar API posterior a 17.
 
 ## Convenciones del repo
 

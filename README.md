@@ -144,10 +144,10 @@ src/main/java/com/example/MarketDemo/
 
 - [x] Proyecto base generado con Spring Initializr
 - [x] Entidades JPA y relaciones (`Producto`, `Sucursal`, `Venta`, `DetalleVenta`)
-- [ ] DTOs y clase `Mapper` (patrón Builder)
-- [ ] Capa `repository`
+- [x] DTOs y clase `Mapper` (patrón Builder)
+- [x] Capa `repository`
 - [ ] Conexión a MySQL en `application.properties`
-- [ ] Capa `service` con la lógica de negocio
+- [x] Capa `service` con la lógica de negocio
 - [ ] Manejo de excepciones
 - [ ] Capa `controller` con los endpoints REST
 - [ ] Pruebas con Postman
