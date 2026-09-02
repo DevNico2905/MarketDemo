@@ -9,7 +9,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/sucursal")
+@RequestMapping("/api/sucursales")
 public class SucursalController {
 
     private final SucursalService sucursalService;
