@@ -15,9 +15,11 @@ Registro diario de avances. Cada entrada se arma a partir de los commits del dí
 - Capa de DTOs (`dto/`) completa: un DTO por entidad, todos inmutables (campos `final` + `@Getter`).
 - `Mapper` con los `toDTO` de las cuatro entidades y capa `repository` con los tres `JpaRepository`.
 - Capa `service` completa: CRUD de productos, sucursales y ventas, `createVenta` incluido.
+- Capa `controller` completa: CRUD REST de `/api/productos`, `/api/sucursales` y `/api/ventas`.
+- Errores de negocio traducidos por `GlobalExceptionHandler` (404 / 409 / 400) y validación de
+  entrada con Bean Validation en los DTOs.
 - Base H2 en memoria configurada (`jdbc:h2:mem:superdb;MODE=MySQL`); la migración a MySQL queda pendiente.
-- Pendiente: la capa `controller` con los endpoints REST y un `@RestControllerAdvice` que traduzca
-  `NotFoundException` a un 404 (hoy cualquier error de negocio termina en 500).
+- Pendiente: el `GET /{id}` de cada recurso, la migración a MySQL y la colección de Postman.
 
 ### Modelo de datos
 
@@ -169,6 +171,58 @@ venta identifica al producto.
 `NotFoundException` a 404. Queda pendiente decidir si el `PUT /api/ventas/{id}` debe poder modificar el
 detalle: hoy acepta el campo y lo ignora en silencio. También revisar el ejemplo de `POST /api/ventas` del
 README, que usa `nombreProd`/`cantProd` mientras que `DetalleVentaDTO` expone `productName`/`cantidad`.
+
+### 2026-09-01
+
+**Commits:** `e430ed3`, `42589ce`
+
+- **`e430ed3` — Product Controller done!:** arranca la capa `controller` con `ProductoController`
+  sobre `/api/productos`: los cuatro endpoints del CRUD, inyección del servicio por constructor y
+  `ResponseEntity` para manejar los códigos a mano (201 con `Location` en el alta, 204 en el borrado).
+  El controller queda fino, sin lógica: delega todo en `ProductoService` y devuelve DTOs.
+- **`42589ce` — Product and Sucursal Controllers done!:** se suma `SucursalController` con el mismo
+  molde y se corrige el `Location` del alta de producto, que se construía como
+  `URI.create("api/productos" + id)` — sin la barra inicial ni la de separación, así que devolvía
+  `api/productos1`, una URI relativa y pegada. Queda `/api/productos/{id}`.
+
+**Próximos pasos:** falta `VentaController` para cerrar la capa, y sigue pendiente el
+`@RestControllerAdvice`: mientras no exista, los endpoints nuevos devuelven 500 ante cualquier
+producto o sucursal inexistente.
+
+### 2026-09-02
+
+**Commits:** `fa46985`, `d643f64`, `b5ef669`, `a3e4d51`
+
+- **`fa46985` — Controllers done!:** se suma `VentaController` y con eso queda cerrada la capa
+  `controller`. También unifica las rutas en plural: `SucursalController` pasa de `/api/sucursal` a
+  `/api/sucursales`, que de paso arregla el `Location` del POST, que ya venía apuntando a
+  `/api/sucursales/{id}` mientras el mapping era singular — o sea, el header devolvía una URL que
+  daba 404. `VentaController` queda en `/api/ventas`, como documenta el README.
+- **`d643f64` — Exception handling: business errors map to 404/409/400:** hasta acá no había
+  `@RestControllerAdvice`, así que toda `NotFoundException` salía como 500. Se agrega
+  `GlobalExceptionHandler` y dos excepciones propias, `ConflictException` y `BadRequestException`,
+  que reemplazan los `RuntimeException` pelados de `ProductoService` y `VentaService`. El handler
+  también atrapa `DataIntegrityViolationException`: borrar un producto usado en un detalle, o una
+  sucursal con ventas, rompía la foreign key y se escapaba como 500 sin pasar por las excepciones
+  del dominio; ahora es un 409. Las respuestas de error salen con forma de `ErrorDTO`.
+- **`b5ef669` — Bean Validation on request DTOs:** se agrega `spring-boot-starter-validation`,
+  restricciones en los cuatro DTOs y `@Valid` en los endpoints que reemplazan el recurso entero.
+  Resuelve dos agujeros del PUT de producto: un body sin `precio` respondía 200 y guardaba `null`,
+  y uno sin `cantidad` moría en un error crudo de Jackson porque el campo era `int` primitivo —
+  por eso `ProductoDTO.cantidad` pasa a `Integer`, para que el campo ausente llegue a la validación
+  en vez de reventar antes. El `PUT /api/ventas/{id}` queda sin `@Valid` a propósito: ahí el update
+  es parcial y el servicio solo pisa los campos que vienen, así que las restricciones de `VentaDTO`,
+  pensadas para el alta, no aplican.
+- **`a3e4d51` — Docs: README checklist and venta payload updated:** se marcan "Manejo de excepciones"
+  y "Capa controller" en el checklist, y se corrige el ejemplo de `POST /api/ventas`, que usaba
+  `nombreProd`/`cantProd`: con la validación nueva ese payload devuelve un 400 explícito, así que
+  dejarlo mal mandaba a cualquiera contra un error.
+
+**Próximos pasos:** falta el `GET /api/{recurso}/{id}` en los tres controllers — hoy seguir el
+`Location` de un POST devuelve 405, porque el `/{id}` solo tiene PUT y DELETE. Después, la migración
+a MySQL y la colección de Postman, que son los dos ítems que quedan abiertos en el checklist del
+README. Sigue pendiente decidir si el `PUT /api/ventas/{id}` debe poder modificar el detalle: hoy
+acepta el campo y lo ignora en silencio.
 
 <!--
 Plantilla para nuevas entradas:
