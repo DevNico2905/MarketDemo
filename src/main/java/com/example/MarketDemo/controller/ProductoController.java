@@ -2,6 +2,7 @@ package com.example.MarketDemo.controller;
 
 import com.example.MarketDemo.dto.ProductoDTO;
 import com.example.MarketDemo.service.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,14 +25,15 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoDTO> createProduct(@RequestBody ProductoDTO producto){
+    public ResponseEntity<ProductoDTO> createProduct(@Valid @RequestBody ProductoDTO producto){
         ProductoDTO created = productoService.createProducto(producto);
         return ResponseEntity.created(URI.create("/api/productos/" + created.getId())).body(created);
     }
 
+    //El update reemplaza el producto entero, así que el body va validado completo
     @PutMapping("/{id}")
     public ResponseEntity<ProductoDTO> updateProduct(@PathVariable Long id,
-                                                     @RequestBody ProductoDTO dto){
+                                                     @Valid @RequestBody ProductoDTO dto){
         return ResponseEntity.ok(productoService.updateProducto(id, dto));
     }
 

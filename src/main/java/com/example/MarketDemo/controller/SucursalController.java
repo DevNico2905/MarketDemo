@@ -2,6 +2,7 @@ package com.example.MarketDemo.controller;
 
 import com.example.MarketDemo.dto.SucursalDTO;
 import com.example.MarketDemo.service.SucursalService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,15 +25,17 @@ public class SucursalController {
     }
 
     @PostMapping
-    public ResponseEntity<SucursalDTO> createSucursal(@RequestBody SucursalDTO dto){
+    public ResponseEntity<SucursalDTO> createSucursal(@Valid @RequestBody SucursalDTO dto){
         SucursalDTO created = sucursalService.createSucursal(dto);
         return ResponseEntity
                 .created(URI.create("/api/sucursales/" + created.getId()))
                 .body(created);
     }
 
+    //El update reemplaza la sucursal entera, así que el body va validado completo
     @PutMapping("/{id}")
-    public ResponseEntity<SucursalDTO> updateSucursal(@PathVariable Long id, @RequestBody SucursalDTO dto){
+    public ResponseEntity<SucursalDTO> updateSucursal(@PathVariable Long id,
+                                                      @Valid @RequestBody SucursalDTO dto){
         return ResponseEntity.ok(sucursalService.updateSucursal(id, dto));
     }
 
