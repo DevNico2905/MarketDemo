@@ -1,5 +1,6 @@
 package com.example.MarketDemo.service;
 import com.example.MarketDemo.dto.ProductoDTO;
+import com.example.MarketDemo.exception.ConflictException;
 import com.example.MarketDemo.exception.NotFoundException;
 import com.example.MarketDemo.mapper.Mapper;
 import com.example.MarketDemo.model.Producto;
@@ -23,7 +24,7 @@ public class ProductoService implements IProductoService {
 
         //El nombre identifica al producto en el detalle de una venta, asi que no puede repetirse
         if (productoRepository.existsByNombre(newProduct.getNombre())) {
-            throw new RuntimeException("Ya existe un producto con el nombre: " + newProduct.getNombre());
+            throw new ConflictException("Ya existe un producto con el nombre: " + newProduct.getNombre());
         }
 
         var product = Producto.builder()
@@ -51,7 +52,7 @@ public class ProductoService implements IProductoService {
         productoRepository.findByNombre(dto.getNombre())
                 .filter(otro -> !otro.getId().equals(id))
                 .ifPresent(otro -> {
-                    throw new RuntimeException("Ya existe un producto con el nombre: " + dto.getNombre());
+                    throw new ConflictException("Ya existe un producto con el nombre: " + dto.getNombre());
                 });
 
         producto.setNombre(dto.getNombre());

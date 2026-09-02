@@ -1,6 +1,7 @@
 package com.example.MarketDemo.service;
 import com.example.MarketDemo.dto.DetalleVentaDTO;
 import com.example.MarketDemo.dto.VentaDTO;
+import com.example.MarketDemo.exception.BadRequestException;
 import com.example.MarketDemo.exception.NotFoundException;
 import com.example.MarketDemo.mapper.Mapper;
 import com.example.MarketDemo.model.DetalleVenta;
@@ -35,9 +36,9 @@ public class VentaService implements IVentaService {
     public VentaDTO createVenta(VentaDTO newVenta) {
 
         //Validaciones previas
-        if (newVenta == null) throw new RuntimeException("Venta es null");
-        if (newVenta.getIdSucursal() == null) throw new RuntimeException("Debe indicar la sucursal");
-        if (newVenta.getDetalle() == null || newVenta.getDetalle().isEmpty()) throw new RuntimeException("Debe incluir al menos un producto");
+        if (newVenta == null) throw new BadRequestException("Venta es null");
+        if (newVenta.getIdSucursal() == null) throw new BadRequestException("Debe indicar la sucursal");
+        if (newVenta.getDetalle() == null || newVenta.getDetalle().isEmpty()) throw new BadRequestException("Debe incluir al menos un producto");
 
         // Buscar la sucursal
         Sucursal sucursal = sucuRepo.findById(newVenta.getIdSucursal())
@@ -56,7 +57,7 @@ public class VentaService implements IVentaService {
         for (DetalleVentaDTO linea : newVenta.getDetalle()) {
 
             if (linea.getCantidad() == null || linea.getCantidad() <= 0) {
-                throw new RuntimeException("La cantidad debe ser mayor a cero");
+                throw new BadRequestException("La cantidad debe ser mayor a cero");
             }
 
             Producto producto = produRepo.findByNombre(linea.getProductName())
