@@ -111,8 +111,8 @@ POST /api/ventas
   "estado": "REGISTRADA",
   "idSucursal": 1,
   "detalle": [
-    { "nombreProd": "Coca Cola 1.5L", "cantProd": 2, "precio": 1500.0 },
-    { "nombreProd": "Naranjas",       "cantProd": 3, "precio": 1500.0 }
+    { "productName": "Coca Cola 1.5L", "cantidad": 2, "precio": 1500.0 },
+    { "productName": "Naranjas",        "cantidad": 3, "precio": 1500.0 }
   ]
 }
 ```
@@ -136,8 +136,8 @@ src/main/java/com/example/MarketDemo/
 ├── mapper/           # Entidad ⇄ DTO              ⏳
 ├── repository/       # Spring Data JPA            ⏳
 ├── service/          # Lógica de negocio          ⏳
-├── controller/       # Endpoints REST             ⏳
-└── exception/        # Excepciones propias        ⏳
+├── controller/       # Endpoints REST             ✅
+└── exception/        # Excepciones propias        ✅
 ```
 
 ## Estado del desarrollo
@@ -148,8 +148,8 @@ src/main/java/com/example/MarketDemo/
 - [x] Capa `repository`
 - [ ] Conexión a MySQL en `application.properties`
 - [x] Capa `service` con la lógica de negocio
-- [ ] Manejo de excepciones
-- [ ] Capa `controller` con los endpoints REST
+- [x] Manejo de excepciones
+- [x] Capa `controller` con los endpoints REST
 - [ ] Pruebas con Postman
 
 ---
